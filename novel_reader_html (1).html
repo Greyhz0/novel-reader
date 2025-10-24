@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eternal Reader - Valhalla</title>
+  
+  <!-- React Dependencies -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    body { 
+      margin: 0; 
+      padding: 0; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    }
+    .line-clamp-1 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 1;
+    }
+    .line-clamp-2 {
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    const { useState } = React;
+    
+    // Lucide React Icons (inline)
+    const BookOpen = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
+    const Zap = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
+    const Moon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>;
+    const Menu = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>;
+    const X = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>;
+    const Search = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>;
+    const Star = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+    const TrendingUp = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>;
+    const BookMarked = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><polyline points="10 2 10 10 13 7 16 10 16 2"/></svg>;
+    const LogIn = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>;
+    const ChevronRight = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m9 18 6-6-6-6"/></svg>;
+    const Home = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+
+    // MOCK DATA - Replace with your actual novels
+    const MOCK_NOVELS = [
+      {
+        id: 1,
+        title: "Solo Leveling",
+        type: "manhwa",
+        cover: "https://images.unsplash.com/photo-1618336753974-aae8e04506aa?w=300&h=400&fit=crop",
+        rating: 4.9,
+        chapters: 179,
+        status: "Completed",
+        genre: ["Action", "Fantasy"],
+        description: "10 years ago, after the Gate that connected the real world with the monster world opened, some of the ordinary, everyday people received the power to hunt monsters within the Gate.",
+        lastUpdate: "2024-01-15"
+      },
+      {
+        id: 2,
+        title: "Omniscient Reader's Viewpoint",
+        type: "novel",
+        cover: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop",
+        rating: 4.8,
+        chapters: 551,
+        status: "Ongoing",
+        genre: ["Fantasy", "Action"],
+        description: "Dokja was an average office worker whose sole interest was reading his favorite web novel. But when the novel suddenly becomes reality, he is the only person who knows how the world will end.",
+        lastUpdate: "2024-10-20"
+      },
+      {
+        id: 3,
+        title: "The Beginning After The End",
+        type: "novel",
+        cover: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=300&h=400&fit=crop",
+        rating: 4.7,
+        chapters: 478,
+        status: "Ongoing",
+        genre: ["Fantasy", "Adventure"],
+        description: "King Grey has unrivaled strength, wealth, and prestige in a world governed by martial ability. However, solitude lingers closely behind those with great power.",
+        lastUpdate: "2024-10-22"
+      },
+      {
+        id: 4,
+        title: "Tower of God",
+        type: "manhwa",
+        cover: "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=300&h=400&fit=crop",
+        rating: 4.6,
+        chapters: 595,
+        status: "Ongoing",
+        genre: ["Action", "Mystery"],
+        description: "What do you desire? Money and wealth? Honor and pride? Authority and power? Revenge? Or something that transcends them all? Whatever you desire it is here.",
+        lastUpdate: "2024-10-21"
+      }
+    ];
+
+    const NovelReaderApp = () => {
+      const [novels, setNovels] = useState(MOCK_NOVELS);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [selectedNovel, setSelectedNovel] = useState(null);
+      const [currentChapter, setCurrentChapter] = useState(null);
+      const [isMenuOpen, setIsMenuOpen] = useState(false);
+      const [showLeaderboard, setShowLeaderboard] = useState(false);
+      const [showAllNovels, setShowAllNovels] = useState(false);
+      const [activeFilter, setActiveFilter] = useState('all');
+
+      const filteredNovels = novels.filter(novel => {
+        const matchesSearch = novel.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                             novel.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesFilter = activeFilter === 'all' || novel.type === activeFilter;
+        return matchesSearch && matchesFilter;
+      });
+
+      const getChapterContent = (novelId, chapterNum) => {
+        return {
+          title: `Chapter ${chapterNum}: The Journey Begins`,
+          content: `When I opened my eyes, I was inside a novel.
+
+[The Birth of a Hero].
+
+[The Birth of a Hero] was a novel focused on the adventures of the main character, Choi Han, a high school boy who was transported to a different dimension from Earth, along with the birth of the numerous heroes of the continent.
+
+I became a part of that novel as the trash of the Count's family, the family that oversaw the territory where the first village that Choi Han visits is located.
+
+The problem is that Choi Han becomes twisted after that village, and everyone in it, are destroyed by assassins.
+
+The bigger problem is the fact that this stupid trash who I have become does not know about what happened in the village and messes with Choi Han, only to get beaten to a pulp.
+
+This is going to be a problem.
+
+I feel like something serious has happened to me. But it was worth trying to make this my new life.`,
+          novel: novels.find(n => n.id === novelId),
+          chapterNumber: chapterNum,
+          translator: "miraclerifle",
+          editor: "Borderline Masochist"
+        };
+      };
+
+      const FeatureCard = ({ icon, title, description }) => (
+        <div className="bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl p-8 hover:bg-gray-700 transition-all transform hover:scale-105 border border-gray-700">
+          <div className="flex justify-center mb-4">{icon}</div>
+          <h3 className="text-xl font-bold text-white text-center mb-2">{title}</h3>
+          <p className="text-gray-400 text-center">{description}</p>
+        </div>
+      );
+
+      const NovelCard = ({ novel, onClick }) => (
+        <div
+          onClick={onClick}
+          className="group cursor-pointer bg-gray-800 rounded-lg overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all transform hover:scale-105 border border-gray-700"
+        >
+          <div className="relative overflow-hidden">
+            <img
+              src={novel.cover}
+              alt={novel.title}
+              className="w-full h-80 object-cover group-hover:scale-110 transition-transform duration-300"
+            />
+            <div className="absolute top-2 right-2 bg-black bg-opacity-70 px-2 py-1 rounded flex items-center">
+              <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+              <span className="text-white text-sm font-semibold">{novel.rating}</span>
+            </div>
+            <div className="absolute top-2 left-2">
+              <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                novel.type === 'novel' ? 'bg-blue-600' : 'bg-pink-600'
+              }`}>
+                {novel.type.toUpperCase()}
+              </span>
+            </div>
+          </div>
+          <div className="p-4">
+            <h3 className="text-lg font-bold text-white mb-2 group-hover:text-purple-400 transition-colors line-clamp-1">
+              {novel.title}
+            </h3>
+            <div className="flex items-center text-sm text-gray-400 mb-2">
+              <BookOpen className="w-4 h-4 mr-1" />
+              <span>{novel.chapters} chapters</span>
+            </div>
+            <p className="text-gray-400 text-sm line-clamp-2">{novel.description}</p>
+          </div>
+        </div>
+      );
+
+      const FilterButton = ({ label, filter, active, onClick }) => (
+        <button
+          onClick={() => onClick(filter)}
+          className={`px-6 py-2 rounded-lg font-semibold transition-all ${
+            active === filter
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+          }`}
+        >
+          {label}
+        </button>
+      );
+
+      const NavLink = ({ icon, text, onClick }) => (
+        <button 
+          onClick={onClick}
+          className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+        >
+          {icon}
+          <span>{text}</span>
+        </button>
+      );
+
+      const MobileNavLink = ({ text, onClick }) => (
+        <button 
+          onClick={onClick}
+          className="block w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md transition-colors"
+        >
+          {text}
+        </button>
+      );
+
+      const handleRandomNovel = () => {
+        const randomIndex = Math.floor(Math.random() * novels.length);
+        setSelectedNovel(novels[randomIndex]);
+        setCurrentChapter(null);
+        setIsMenuOpen(false);
+        window.scrollTo(0, 0);
+      };
+
+      const handleNovelsClick = () => {
+        setSelectedNovel(null);
+        setCurrentChapter(null);
+        setShowLeaderboard(false);
+        setShowAllNovels(true);
+        setIsMenuOpen(false);
+        window.scrollTo(0, 0);
+      };
+
+      const handleHomeClick = () => {
+        setSelectedNovel(null);
+        setCurrentChapter(null);
+        setShowLeaderboard(false);
+        setShowAllNovels(false);
+        setIsMenuOpen(false);
+        window.scrollTo(0, 0);
+      };
+
+      const handleLeaderboardClick = () => {
+        setSelectedNovel(null);
+        setCurrentChapter(null);
+        setShowLeaderboard(true);
+        setShowAllNovels(false);
+        setIsMenuOpen(false);
+        window.scrollTo(0, 0);
+      };
+
+      const AllNovelsPage = () => (
+      const HomePage = () => (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">All Novels & Manhwa</h1>
+            <p className="text-gray-400 mb-8">Browse the complete Valhalla collection</p>
+            
+            <div className="flex gap-4 mb-8 flex-wrap">
+              <FilterButton label="All" filter="all" active={activeFilter} onClick={setActiveFilter} />
+              <FilterButton label="Novels" filter="novel" active={activeFilter} onClick={setActiveFilter} />
+              <FilterButton label="Manhwa" filter="manhwa" active={activeFilter} onClick={setActiveFilter} />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {filteredNovels.map(novel => (
+                <NovelCard key={novel.id} novel={novel} onClick={() => setSelectedNovel(novel)} />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+
+      const LeaderboardPage = () => {
+        const sortedNovels = [...novels].sort((a, b) => b.rating - a.rating);
+        
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">🏆 Valhalla Leaderboard</h1>
+              <p className="text-gray-400 mb-8">Top rated novels and manhwa in our collection</p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {sortedNovels.map((novel, index) => (
+                  <div key={novel.id} className="relative">
+                    {index < 3 && (
+                      <div className="absolute -top-3 -right-3 z-10 bg-yellow-500 text-black font-bold rounded-full w-10 h-10 flex items-center justify-center text-lg shadow-lg">
+                        #{index + 1}
+                      </div>
+                    )}
+                    <NovelCard novel={novel} onClick={() => setSelectedNovel(novel)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      };
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+          <div className="relative overflow-hidden">
+            <div className="absolute inset-0 bg-black opacity-40"></div>
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 text-center">
+              <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
+                Eternal Reader
+              </h1>
+              <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                Valhalla's premier destination for web novels and manhwa
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+                <button
+                  onClick={() => window.scrollTo({ top: 600, behavior: 'smooth' })}
+                  className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg"
+                >
+                  View our popular novels <span className="text-purple-300">here</span>
+                </button>
+              </div>
+              <p className="text-gray-400 text-sm">
+                Logged in users do not need to input the password.
+              </p>
+            </div>
+          </div>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <FeatureCard
+                icon={<BookOpen className="w-12 h-12 text-green-400" />}
+                title="Extensive Library"
+                description="Access a vast collection of novels with a single click."
+              />
+              <FeatureCard
+                icon={<Zap className="w-12 h-12 text-orange-400" />}
+                title="Fast Reading"
+                description="Read chapters quickly and efficiently."
+              />
+              <FeatureCard
+                icon={<Moon className="w-12 h-12 text-yellow-400" />}
+                title="Dark Mode"
+                description="Enjoy reading with an eye-friendly dark mode."
+              />
+            </div>
+          </div>
+
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search for novels or manhwa..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-all"
+              />
+            </div>
+            <div className="flex gap-4 mt-4 justify-center flex-wrap">
+              <FilterButton label="All" filter="all" active={activeFilter} onClick={setActiveFilter} />
+              <FilterButton label="Novels" filter="novel" active={activeFilter} onClick={setActiveFilter} />
+              <FilterButton label="Manhwa" filter="manhwa" active={activeFilter} onClick={setActiveFilter} />
+            </div>
+          </div>
+
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <h2 className="text-3xl font-bold text-white mb-8">
+              {activeFilter === 'all' ? 'All Content' : activeFilter === 'novel' ? 'Novels' : 'Manhwa'}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {filteredNovels.map(novel => (
+                <NovelCard key={novel.id} novel={novel} onClick={() => setSelectedNovel(novel)} />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+
+      const NovelDetailPage = () => (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <button
+              onClick={() => setSelectedNovel(null)}
+              className="flex items-center text-purple-400 hover:text-purple-300 mb-6 transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 transform rotate-180 mr-2" />
+              Back to Valhalla
+            </button>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="md:col-span-1">
+                <img
+                  src={selectedNovel.cover}
+                  alt={selectedNovel.title}
+                  className="w-full rounded-lg shadow-2xl mb-4"
+                />
+                <div className="bg-gray-800 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Rating</span>
+                    <div className="flex items-center">
+                      <Star className="w-4 h-4 text-yellow-400 fill-current mr-1" />
+                      <span className="text-white font-semibold">{selectedNovel.rating}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Chapters</span>
+                    <span className="text-white font-semibold">{selectedNovel.chapters}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Status</span>
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      selectedNovel.status === 'Ongoing' ? 'bg-green-600' : 'bg-blue-600'
+                    }`}>
+                      {selectedNovel.status}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <h1 className="text-4xl font-bold text-white mb-4">{selectedNovel.title}</h1>
+                <div className="flex gap-2 mb-4">
+                  {selectedNovel.genre.map(g => (
+                    <span key={g} className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm">
+                      {g}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-gray-300 mb-6 leading-relaxed">{selectedNovel.description}</p>
+                
+                <h2 className="text-2xl font-bold text-white mb-4">Chapters</h2>
+                <div className="bg-gray-800 rounded-lg overflow-hidden">
+                  <div className="max-h-96 overflow-y-auto">
+                    {Array.from({ length: Math.min(selectedNovel.chapters, 50) }, (_, i) => i + 1).map(chapterNum => (
+                      <button
+                        key={chapterNum}
+                        onClick={() => setCurrentChapter(getChapterContent(selectedNovel.id, chapterNum))}
+                        className="w-full px-6 py-4 text-left hover:bg-gray-700 transition-colors border-b border-gray-700 flex items-center justify-between group"
+                      >
+                        <span className="text-white group-hover:text-purple-400 transition-colors">
+                          Chapter {chapterNum}
+                        </span>
+                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      const ChapterReaderPage = () => {
+        const progress = Math.round((currentChapter.chapterNumber / currentChapter.novel.chapters) * 100);
+        
+        return (
+          <div className="min-h-screen bg-black">
+            <div className="sticky top-0 bg-gray-900 border-b border-gray-800 z-10">
+              <div className="max-w-5xl mx-auto px-4 py-4">
+                <div className="flex items-center justify-between mb-2">
+                  <button
+                    onClick={() => setCurrentChapter(null)}
+                    className="flex items-center text-purple-400 hover:text-purple-300 transition-colors"
+                  >
+                    <ChevronRight className="w-5 h-5 transform rotate-180 mr-2" />
+                    Back to {currentChapter.novel.title}
+                  </button>
+                  <div className="text-purple-400 text-sm">
+                    Chapter {currentChapter.chapterNumber} of {currentChapter.novel.chapters} ({progress}% complete) • Last read: Just now
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="max-w-6xl mx-auto px-4 py-8">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <button
+                  onClick={() => {
+                    if (currentChapter.chapterNumber > 1) {
+                      setCurrentChapter(getChapterContent(currentChapter.novel.id, currentChapter.chapterNumber - 1));
+                      window.scrollTo(0, 0);
+                    }
+                  }}
+                  disabled={currentChapter.chapterNumber === 1}
+                  className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-950 disabled:opacity-50 rounded-xl p-6 transition-all border border-gray-800"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <BookOpen className="w-8 h-8 text-purple-400 mb-3" />
+                    <h3 className="text-purple-400 font-semibold mb-1">Previous Chapter</h3>
+                    <p className="text-gray-400 text-sm">Enjoy reading in dark mode.</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => setCurrentChapter(null)}
+                  className="bg-gray-900 hover:bg-gray-800 rounded-xl p-6 transition-all border border-gray-800"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <Moon className="w-8 h-8 text-yellow-400 mb-3" />
+                    <h3 className="text-purple-400 font-semibold mb-1">Home</h3>
+                    <p className="text-gray-400 text-sm">Generate chapters quickly and efficiently.</p>
+                  </div>
+                </button>
+
+                <button className="bg-gray-900 hover:bg-gray-800 rounded-xl p-6 transition-all border border-gray-800">
+                  <div className="flex flex-col items-center text-center">
+                    <Star className="w-8 h-8 text-gray-400 mb-3" />
+                    <h3 className="text-purple-400 font-semibold mb-1">Settings</h3>
+                    <p className="text-gray-400 text-sm">Text-To-Speech, Font Customization, and more</p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => {
+                    if (currentChapter.chapterNumber < currentChapter.novel.chapters) {
+                      setCurrentChapter(getChapterContent(currentChapter.novel.id, currentChapter.chapterNumber + 1));
+                      window.scrollTo(0, 0);
+                    }
+                  }}
+                  disabled={currentChapter.chapterNumber === currentChapter.novel.chapters}
+                  className="bg-gray-900 hover:bg-gray-800 disabled:bg-gray-950 disabled:opacity-50 rounded-xl p-6 transition-all border border-gray-800"
+                >
+                  <div className="flex flex-col items-center text-center">
+                    <BookOpen className="w-8 h-8 text-purple-400 mb-3" />
+                    <h3 className="text-purple-400 font-semibold mb-1">Next Chapter</h3>
+                    <p className="text-gray-400 text-sm">Enjoy reading in dark mode.</p>
+                  </div>
+                </button>
+              </div>
+
+              <div className="bg-black rounded-lg">
+                <div className="border-b border-gray-900 pb-6 mb-8">
+                  <h1 className="text-2xl font-bold text-white mb-4">{currentChapter.novel.title}</h1>
+                  <h2 className="text-xl text-purple-400 mb-4">{currentChapter.title}</h2>
+                  
+                  <div className="space-y-2 text-gray-400 text-sm">
+                    <p>Translator: {currentChapter.translator}</p>
+                    <p>Editor: {currentChapter.editor}</p>
+                    <p className="text-gray-500 italic"># Prologue#This chapter is updated by NovelFire.net</p>
+                  </div>
+                </div>
+                
+                <div className="prose prose-invert prose-lg max-w-none">
+                  <div className="text-gray-300 leading-relaxed space-y-6" style={{ fontSize: '1.125rem', lineHeight: '1.8' }}>
+                    {currentChapter.content.split('\n\n').map((paragraph, idx) => (
+                      <p key={idx} className="mb-6">{paragraph}</p>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-16 pt-8 border-t border-gray-900">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <button
+                      onClick={() => {
+                        if (currentChapter.chapterNumber > 1) {
+                          setCurrentChapter(getChapterContent(currentChapter.novel.id, currentChapter.chapterNumber - 1));
+                          window.scrollTo(0, 0);
+                        }
+                      }}
+                      disabled={currentChapter.chapterNumber === 1}
+                      className="w-full sm:w-auto px-8 py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                    >
+                      <ChevronRight className="w-5 h-5 transform rotate-180" />
+                      Previous Chapter
+                    </button>
+                    
+                    <button
+                      onClick={() => setCurrentChapter(null)}
+                      className="w-full sm:w-auto px-8 py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all"
+                    >
+                      Back to Novel
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        if (currentChapter.chapterNumber < currentChapter.novel.chapters) {
+                          setCurrentChapter(getChapterContent(currentChapter.novel.id, currentChapter.chapterNumber + 1));
+                          window.scrollTo(0, 0);
+                        }
+                      }}
+                      disabled={currentChapter.chapterNumber === currentChapter.novel.chapters}
+                      className="w-full sm:w-auto px-8 py-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+                    >
+                      Next Chapter
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      return (
+        <div className="min-h-screen bg-gray-900">
+          <nav className="bg-black bg-opacity-80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-800">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex items-center justify-between h-16">
+                <div className="flex items-center">
+                  <button
+                    onClick={() => {
+                      setSelectedNovel(null);
+                      setCurrentChapter(null);
+                    }}
+                    className="text-2xl font-bold text-purple-400 hover:text-purple-300 transition-colors"
+                  >
+                    Novel Reader
+                  </button>
+                </div>
+                
+                <div className="hidden md:flex items-center space-x-8">
+                  <NavLink icon={<Home className="w-4 h-4" />} text="Home" onClick={handleHomeClick} />
+                  <NavLink icon={<BookMarked className="w-4 h-4" />} text="Novels" onClick={handleNovelsClick} />
+                  <NavLink icon={<TrendingUp className="w-4 h-4" />} text="Random Novel" onClick={handleRandomNovel} />
+                  <NavLink icon={<Star className="w-4 h-4" />} text="Leaderboard" onClick={handleLeaderboardClick} />
+                  <button className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-all">
+                    <LogIn className="w-4 h-4" />
+                    <span>Login</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="md:hidden text-white"
+                >
+                  {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+              </div>
+            </div>
+
+            {isMenuOpen && (
+              <div className="md:hidden bg-gray-900 border-t border-gray-800">
+                <div className="px-2 pt-2 pb-3 space-y-1">
+                  <MobileNavLink text="Home" onClick={handleHomeClick} />
+                  <MobileNavLink text="Novels" onClick={handleNovelsClick} />
+                  <MobileNavLink text="Random Novel" onClick={handleRandomNovel} />
+                  <MobileNavLink text="Leaderboard" onClick={handleLeaderboardClick} />
+                  <MobileNavLink text="Login" onClick={() => setIsMenuOpen(false)} />
+                </div>
+              </div>
+            )}
+          </nav>
+
+          {currentChapter ? (
+            <ChapterReaderPage />
+          ) : selectedNovel ? (
+            <NovelDetailPage />
+          ) : (
+            <HomePage />
+          )}
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<NovelReaderApp />);
+  </script>
+</body>
+</html>
+                          
