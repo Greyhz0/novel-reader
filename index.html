@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Eternal Reader - Valhalla</title>
-  
+
   <!-- React Dependencies -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  
+
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
+
   <style>
-    body { 
-      margin: 0; 
-      padding: 0; 
+    body {
+      margin: 0;
+      padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
     }
     .line-clamp-1 {
@@ -35,11 +35,11 @@
 </head>
 <body>
   <div id="root"></div>
-  
+
   <script type="text/babel">
     const { useState } = React;
-    
-    // Lucide React Icons (inline)
+
+    // --- Icons (inline) ---
     const BookOpen = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
     const Zap = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>;
     const Moon = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>;
@@ -53,7 +53,7 @@
     const ChevronRight = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m9 18 6-6-6-6"/></svg>;
     const Home = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
 
-    // MOCK DATA - Replace with your actual novels
+    // --- MOCK DATA ---
     const MOCK_NOVELS = [
       {
         id: 1,
@@ -105,6 +105,7 @@
       }
     ];
 
+    // --- App ---
     const NovelReaderApp = () => {
       const [novels, setNovels] = useState(MOCK_NOVELS);
       const [searchTerm, setSearchTerm] = useState('');
@@ -116,8 +117,8 @@
       const [activeFilter, setActiveFilter] = useState('all');
 
       const filteredNovels = novels.filter(novel => {
-        const matchesSearch = novel.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                             novel.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const q = searchTerm.trim().toLowerCase();
+        const matchesSearch = !q || novel.title.toLowerCase().includes(q) || novel.description.toLowerCase().includes(q);
         const matchesFilter = activeFilter === 'all' || novel.type === activeFilter;
         return matchesSearch && matchesFilter;
       });
@@ -147,6 +148,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
         };
       };
 
+      // --- Small reusable components ---
       const FeatureCard = ({ icon, title, description }) => (
         <div className="bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl p-8 hover:bg-gray-700 transition-all transform hover:scale-105 border border-gray-700">
           <div className="flex justify-center mb-4">{icon}</div>
@@ -157,7 +159,10 @@ I feel like something serious has happened to me. But it was worth trying to mak
 
       const NovelCard = ({ novel, onClick }) => (
         <div
-          onClick={onClick}
+          onClick={() => {
+            // open novel details and reset other views
+            onClick();
+          }}
           className="group cursor-pointer bg-gray-800 rounded-lg overflow-hidden hover:shadow-2xl hover:shadow-purple-500/20 transition-all transform hover:scale-105 border border-gray-700"
         >
           <div className="relative overflow-hidden">
@@ -205,7 +210,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
       );
 
       const NavLink = ({ icon, text, onClick }) => (
-        <button 
+        <button
           onClick={onClick}
           className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
         >
@@ -215,7 +220,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
       );
 
       const MobileNavLink = ({ text, onClick }) => (
-        <button 
+        <button
           onClick={onClick}
           className="block w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-md transition-colors"
         >
@@ -223,10 +228,13 @@ I feel like something serious has happened to me. But it was worth trying to mak
         </button>
       );
 
+      // --- Handlers ---
       const handleRandomNovel = () => {
         const randomIndex = Math.floor(Math.random() * novels.length);
         setSelectedNovel(novels[randomIndex]);
         setCurrentChapter(null);
+        setShowAllNovels(false);
+        setShowLeaderboard(false);
         setIsMenuOpen(false);
         window.scrollTo(0, 0);
       };
@@ -258,53 +266,8 @@ I feel like something serious has happened to me. But it was worth trying to mak
         window.scrollTo(0, 0);
       };
 
-      const AllNovelsPage = () => (
+      // --- Pages (properly separated) ---
       const HomePage = () => (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">All Novels & Manhwa</h1>
-            <p className="text-gray-400 mb-8">Browse the complete Valhalla collection</p>
-            
-            <div className="flex gap-4 mb-8 flex-wrap">
-              <FilterButton label="All" filter="all" active={activeFilter} onClick={setActiveFilter} />
-              <FilterButton label="Novels" filter="novel" active={activeFilter} onClick={setActiveFilter} />
-              <FilterButton label="Manhwa" filter="manhwa" active={activeFilter} onClick={setActiveFilter} />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {filteredNovels.map(novel => (
-                <NovelCard key={novel.id} novel={novel} onClick={() => setSelectedNovel(novel)} />
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-
-      const LeaderboardPage = () => {
-        const sortedNovels = [...novels].sort((a, b) => b.rating - a.rating);
-        
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">🏆 Valhalla Leaderboard</h1>
-              <p className="text-gray-400 mb-8">Top rated novels and manhwa in our collection</p>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {sortedNovels.map((novel, index) => (
-                  <div key={novel.id} className="relative">
-                    {index < 3 && (
-                      <div className="absolute -top-3 -right-3 z-10 bg-yellow-500 text-black font-bold rounded-full w-10 h-10 flex items-center justify-center text-lg shadow-lg">
-                        #{index + 1}
-                      </div>
-                    )}
-                    <NovelCard novel={novel} onClick={() => setSelectedNovel(novel)} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-      };
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
           <div className="relative overflow-hidden">
             <div className="absolute inset-0 bg-black opacity-40"></div>
@@ -313,7 +276,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
                 Eternal Reader
               </h1>
               <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto">
-                Valhalla's premier destination for web novels and manhwa
+                Eternal Reader's premier destination for web novels and manhwa
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                 <button
@@ -373,24 +336,99 @@ I feel like something serious has happened to me. But it was worth trying to mak
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {filteredNovels.map(novel => (
-                <NovelCard key={novel.id} novel={novel} onClick={() => setSelectedNovel(novel)} />
+                <NovelCard
+                  key={novel.id}
+                  novel={novel}
+                  onClick={() => {
+                    setSelectedNovel(novel);
+                    setShowAllNovels(false);
+                    setShowLeaderboard(false);
+                    window.scrollTo(0, 0);
+                  }}
+                />
               ))}
             </div>
           </div>
         </div>
       );
 
+      const AllNovelsPage = () => (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">All Novels & Manhwa</h1>
+            <p className="text-gray-400 mb-8">Browse the complete Eternal Reader collection</p>
+
+            <div className="flex gap-4 mb-8 flex-wrap">
+              <FilterButton label="All" filter="all" active={activeFilter} onClick={setActiveFilter} />
+              <FilterButton label="Novels" filter="novel" active={activeFilter} onClick={setActiveFilter} />
+              <FilterButton label="Manhwa" filter="manhwa" active={activeFilter} onClick={setActiveFilter} />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {filteredNovels.map(novel => (
+                <NovelCard
+                  key={novel.id}
+                  novel={novel}
+                  onClick={() => {
+                    setSelectedNovel(novel);
+                    setShowAllNovels(false);
+                    window.scrollTo(0, 0);
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+
+      const LeaderboardPage = () => {
+        const sortedNovels = [...novels].sort((a, b) => b.rating - a.rating);
+
+        return (
+          <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">🏆 Eternal Reader Leaderboard</h1>
+              <p className="text-gray-400 mb-8">Top rated novels and manhwa in our collection</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {sortedNovels.map((novel, index) => (
+                  <div key={novel.id} className="relative">
+                    {index < 3 && (
+                      <div className="absolute -top-3 -right-3 z-10 bg-yellow-500 text-black font-bold rounded-full w-10 h-10 flex items-center justify-center text-lg shadow-lg">
+                        #{index + 1}
+                      </div>
+                    )}
+                    <NovelCard
+                      novel={novel}
+                      onClick={() => {
+                        setSelectedNovel(novel);
+                        setShowLeaderboard(false);
+                        window.scrollTo(0, 0);
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      };
+
       const NovelDetailPage = () => (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <button
-              onClick={() => setSelectedNovel(null)}
+              onClick={() => {
+                setSelectedNovel(null);
+                setShowAllNovels(false);
+                setShowLeaderboard(false);
+              }}
               className="flex items-center text-purple-400 hover:text-purple-300 mb-6 transition-colors"
             >
               <ChevronRight className="w-5 h-5 transform rotate-180 mr-2" />
-              Back to Valhalla
+              Back to Eternal Reader
             </button>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div className="md:col-span-1">
                 <img
@@ -431,7 +469,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
                   ))}
                 </div>
                 <p className="text-gray-300 mb-6 leading-relaxed">{selectedNovel.description}</p>
-                
+
                 <h2 className="text-2xl font-bold text-white mb-4">Chapters</h2>
                 <div className="bg-gray-800 rounded-lg overflow-hidden">
                   <div className="max-h-96 overflow-y-auto">
@@ -457,7 +495,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
 
       const ChapterReaderPage = () => {
         const progress = Math.round((currentChapter.chapterNumber / currentChapter.novel.chapters) * 100);
-        
+
         return (
           <div className="min-h-screen bg-black">
             <div className="sticky top-0 bg-gray-900 border-b border-gray-800 z-10">
@@ -471,7 +509,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
                     Back to {currentChapter.novel.title}
                   </button>
                   <div className="text-purple-400 text-sm">
-                    Chapter {currentChapter.chapterNumber} of {currentChapter.novel.chapters} ({progress}% complete) • Last read: Just now
+                    Chapter {currentChapter.chapterNumber} of {currentChapter.novel.chapters} ({progress}% complete)
                   </div>
                 </div>
               </div>
@@ -503,7 +541,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
                   <div className="flex flex-col items-center text-center">
                     <Moon className="w-8 h-8 text-yellow-400 mb-3" />
                     <h3 className="text-purple-400 font-semibold mb-1">Home</h3>
-                    <p className="text-gray-400 text-sm">Generate chapters quickly and efficiently.</p>
+                    <p className="text-gray-400 text-sm">Return to the reader home.</p>
                   </div>
                 </button>
 
@@ -528,7 +566,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
                   <div className="flex flex-col items-center text-center">
                     <BookOpen className="w-8 h-8 text-purple-400 mb-3" />
                     <h3 className="text-purple-400 font-semibold mb-1">Next Chapter</h3>
-                    <p className="text-gray-400 text-sm">Enjoy reading in dark mode.</p>
+                    <p className="text-gray-400 text-sm">Continue reading.</p>
                   </div>
                 </button>
               </div>
@@ -537,14 +575,13 @@ I feel like something serious has happened to me. But it was worth trying to mak
                 <div className="border-b border-gray-900 pb-6 mb-8">
                   <h1 className="text-2xl font-bold text-white mb-4">{currentChapter.novel.title}</h1>
                   <h2 className="text-xl text-purple-400 mb-4">{currentChapter.title}</h2>
-                  
+
                   <div className="space-y-2 text-gray-400 text-sm">
                     <p>Translator: {currentChapter.translator}</p>
                     <p>Editor: {currentChapter.editor}</p>
-                    <p className="text-gray-500 italic"># Prologue#This chapter is updated by NovelFire.net</p>
                   </div>
                 </div>
-                
+
                 <div className="prose prose-invert prose-lg max-w-none">
                   <div className="text-gray-300 leading-relaxed space-y-6" style={{ fontSize: '1.125rem', lineHeight: '1.8' }}>
                     {currentChapter.content.split('\n\n').map((paragraph, idx) => (
@@ -568,7 +605,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
                       <ChevronRight className="w-5 h-5 transform rotate-180" />
                       Previous Chapter
                     </button>
-                    
+
                     <button
                       onClick={() => setCurrentChapter(null)}
                       className="w-full sm:w-auto px-8 py-4 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-semibold transition-all"
@@ -597,6 +634,7 @@ I feel like something serious has happened to me. But it was worth trying to mak
         );
       };
 
+      // --- Main render switch ---
       return (
         <div className="min-h-screen bg-gray-900">
           <nav className="bg-black bg-opacity-80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-800">
@@ -605,15 +643,15 @@ I feel like something serious has happened to me. But it was worth trying to mak
                 <div className="flex items-center">
                   <button
                     onClick={() => {
-                      setSelectedNovel(null);
-                      setCurrentChapter(null);
+                      // go home
+                      handleHomeClick();
                     }}
                     className="text-2xl font-bold text-purple-400 hover:text-purple-300 transition-colors"
                   >
-                    Novel Reader
+                    Eternal Reader
                   </button>
                 </div>
-                
+
                 <div className="hidden md:flex items-center space-x-8">
                   <NavLink icon={<Home className="w-4 h-4" />} text="Home" onClick={handleHomeClick} />
                   <NavLink icon={<BookMarked className="w-4 h-4" />} text="Novels" onClick={handleNovelsClick} />
@@ -651,6 +689,10 @@ I feel like something serious has happened to me. But it was worth trying to mak
             <ChapterReaderPage />
           ) : selectedNovel ? (
             <NovelDetailPage />
+          ) : showLeaderboard ? (
+            <LeaderboardPage />
+          ) : showAllNovels ? (
+            <AllNovelsPage />
           ) : (
             <HomePage />
           )}
@@ -663,4 +705,3 @@ I feel like something serious has happened to me. But it was worth trying to mak
   </script>
 </body>
 </html>
-                          
