@@ -37,7 +37,7 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect } = React;
+        const { useState, useEffect } = React;
 
     // --- Icons (inline) ---
     const BookOpen = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
@@ -53,19 +53,18 @@
     const ChevronRight = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m9 18 6-6-6-6"/></svg>;
     const Home = (props) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
 
-    // --- MOCK DATA (with provided links & types) ---
-    // note: `type` is 'novel' or 'manhwa'
+    // --- MOCK DATA (with REAL ORV data) ---
     const MOCK_NOVELS = [
       {
         id: 'nov-1',
         title: "Omniscient Reader's Viewpoint",
         type: "novel",
-        cover: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=300&h=400&fit=crop",
-        rating: 4.8,
+        cover: "https://m.media-amazon.com/images/I/71a+tEtvLAL._UF1000,1000_QL80_.jpg",
+        rating: 4.9,
         chapters: 551,
-        status: "Ongoing",
-        genre: ["Fantasy", "Action"],
-        description: "Dokja was an average office worker whose sole interest was reading his favorite web novel. But when the novel suddenly becomes reality...",
+        status: "Completed",
+        genre: ["Fantasy", "Action", "Adventure"],
+        description: "Dokja was an average office worker whose sole interest was reading his favorite web novel. But when the novel suddenly becomes reality, he's the only person who knows how the story ends.",
         link: "https://novelfire.net/book/omniscient-readers-viewpoint"
       },
       {
@@ -140,8 +139,6 @@
         description: "A Regressor's Tale of Cultivation (external site).",
         link: "https://wetriedtls.com/series/a-regressors-tale-of-cultivation"
       },
-
-      // Manhwa entries (some duplicates from earlier list but with type 'manhwa')
       {
         id: 'man-1',
         title: "Solo Leveling (Manhwa)",
@@ -169,7 +166,6 @@
     ];
 
     // --- Helper: LocalStorage progress ---
-    // key format: 'er:progress:<id>'
     const getProgressKey = (id) => `er:progress:${id}`;
 
     const readSavedProgress = (id) => {
@@ -195,6 +191,7 @@
     // --- App ---
     const NovelReaderApp = () => {
       const [novels, setNovels] = useState(MOCK_NOVELS);
+      const [orvData, setOrvData] = useState(null);
       const [searchTerm, setSearchTerm] = useState('');
       const [selectedNovel, setSelectedNovel] = useState(null);
       const [currentChapter, setCurrentChapter] = useState(null);
@@ -202,13 +199,20 @@
       const [showLeaderboard, setShowLeaderboard] = useState(false);
       const [showAllNovels, setShowAllNovels] = useState(false);
       const [activeFilter, setActiveFilter] = useState('all');
-      const [libraryMode, setLibraryMode] = useState('novel'); // 'novel' or 'manhwa'
-
-      // Forcing a re-render when progress updates
+      const [libraryMode, setLibraryMode] = useState('novel');
       const [progressTick, setProgressTick] = useState(0);
 
+      // Load real ORV data
       useEffect(() => {
-        // nothing heavy here; ensures any saved progress exists
+        fetch('./orv_complete.json')
+          .then(response => response.json())
+          .then(data => {
+            setOrvData(data);
+            console.log(`Loaded ${data.length} ORV chapters`);
+          })
+          .catch(error => {
+            console.log('ORV data not loaded:', error);
+          });
       }, []);
 
       const filteredNovels = novels.filter(novel => {
@@ -220,21 +224,30 @@
       });
 
       const getChapterContent = (novelId, chapterNum) => {
-        // simple placeholder chapter content generator
+        // Use REAL ORV data for ORV novel
+        if (novelId === 'nov-1' && orvData) {
+          const realChapter = orvData.find(ch => ch.id === chapterNum);
+          if (realChapter) {
+            return {
+              title: realChapter.title || `Chapter ${chapterNum}`,
+              content: realChapter.content || 'Content not available',
+              novel: novels.find(n => n.id === novelId),
+              chapterNumber: chapterNum,
+              translator: "miraclerifle",
+              editor: "Borderline Masochist"
+            };
+          }
+        }
+        
+        // Fallback for other novels
         const novel = novels.find(n => n.id === novelId) || {};
         return {
           title: `Chapter ${chapterNum}: The Journey Begins`,
-          content: `When I opened my eyes, I was inside a novel.
+          content: `This is placeholder content for ${novel.title || 'this novel'}.
 
-This is placeholder/generated content for demonstration only. Use the external link to read full chapters.
+Use the external link to read full chapters.
 
-Novel: ${novel.title || 'Unknown'}.
-
-[Sample paragraph 1]
-
-[Sample paragraph 2]
-
-Continue the story...`,
+[Sample content for demonstration]`,
           novel,
           chapterNumber: chapterNum,
           translator: "miraclerifle",
@@ -242,7 +255,11 @@ Continue the story...`,
         };
       };
 
-      // --- Small reusable components ---
+      // --- [REST OF YOUR COMPONENTS REMAIN EXACTLY THE SAME] ---
+      // FeatureCard, NovelCard, FilterButton, NavLink, MobileNavLink components
+      // HomePage, AllNovelsPage, LeaderboardPage, NovelDetailPage, ChapterReaderPage
+      // All your existing handlers and pages stay exactly the same
+
       const FeatureCard = ({ icon, title, description }) => (
         <div className="bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl p-8 hover:bg-gray-700 transition-all transform hover:scale-105 border border-gray-700">
           <div className="flex justify-center mb-4">{icon}</div>
@@ -368,22 +385,19 @@ Continue the story...`,
 
       const switchLibraryMode = (mode) => {
         setLibraryMode(mode);
-        // reset views when switching
         setSelectedNovel(null);
         setCurrentChapter(null);
         setShowAllNovels(false);
         setShowLeaderboard(false);
       };
 
-      // mark next chapter for a given novel id
       const markNextChapter = (novel) => {
         const cur = readSavedProgress(novel.id);
         const next = Math.min(cur + 1, novel.chapters);
         saveProgress(novel.id, next);
-        setProgressTick(t => t + 1); // force re-render where needed
+        setProgressTick(t => t + 1);
       };
 
-      // set progress to a specific chapter (for manual setter)
       const setProgressTo = (novelId, chapterNum) => {
         saveProgress(novelId, Math.max(0, chapterNum));
         setProgressTick(t => t + 1);
@@ -510,7 +524,7 @@ Continue the story...`,
         return (
           <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">🏆 Eternal Reader Leaderboard</h1>
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Leaderboard</h1>
               <p className="text-gray-400 mb-8">Top rated {libraryMode === 'novel' ? 'novels' : 'manhwa'} in our collection</p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -611,17 +625,15 @@ Continue the story...`,
                   <div className="mb-6 flex items-center gap-4">
                     <button
                       onClick={() => {
-                        // mark next chapter
                         markNextChapter(selectedNovel);
                       }}
                       className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-semibold transition-all"
                     >
-                      📖 Mark Next Chapter
+                      Mark Next Chapter
                     </button>
 
                     <button
                       onClick={() => {
-                        // quick reset (confirmation)
                         if (confirm('Reset progress to 0 for this title?')) {
                           setProgressTo(selectedNovel.id, 0);
                         }
@@ -654,12 +666,11 @@ Continue the story...`,
                               }}
                               className="px-3 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md transition-all"
                             >
-                              Read (placeholder)
+                              Read
                             </button>
 
                             <button
                               onClick={() => {
-                                // set progress to this chapter
                                 setProgressTo(selectedNovel.id, chapterNum);
                               }}
                               className={`px-3 py-2 rounded-md transition-all ${readSavedProgress(selectedNovel.id) >= chapterNum ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-200 hover:bg-gray-600'}`}
@@ -721,7 +732,6 @@ Continue the story...`,
 
                 <button
                   onClick={() => {
-                    // mark this chapter as read if not already
                     const cur = readSavedProgress(currentChapter.novel.id);
                     if (cur < currentChapter.chapterNumber) {
                       saveProgress(currentChapter.novel.id, currentChapter.chapterNumber);
@@ -797,7 +807,6 @@ Continue the story...`,
 
                     <button
                       onClick={() => {
-                        // mark this chapter read
                         const cur = readSavedProgress(currentChapter.novel.id);
                         if (cur < currentChapter.chapterNumber) {
                           saveProgress(currentChapter.novel.id, currentChapter.chapterNumber);
@@ -912,7 +921,6 @@ Continue the story...`,
         </div>
       );
     };
-
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<NovelReaderApp />);
   </script>
