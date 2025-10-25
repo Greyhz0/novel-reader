@@ -202,16 +202,16 @@
       const [libraryMode, setLibraryMode] = useState('novel');
       const [progressTick, setProgressTick] = useState(0);
 
-      // Load real ORV data - FIXED PATH
+      // Load real ORV data - FIXED: Changed from './orv_complete.json' to './orv_chapters.json'
       useEffect(() => {
-        fetch('./orv_complete.json')
+        fetch('./orv_chapters.json')
           .then(response => {
             if (!response.ok) throw new Error('Failed to load ORV data');
             return response.json();
           })
           .then(data => {
             setOrvData(data);
-            console.log(`✅ Loaded ${data.length} ORV chapters`);
+            console.log(`✅ Loaded ${Object.keys(data).length} ORV chapters`);
           })
           .catch(error => {
             console.error('❌ ORV data not loaded:', error);
@@ -229,7 +229,7 @@
       const getChapterContent = (novelId, chapterNum) => {
         // Use REAL ORV data for ORV novel
         if (novelId === 'nov-1' && orvData) {
-          const realChapter = orvData.find(ch => ch.id === chapterNum);
+          const realChapter = orvData[chapterNum]; // FIXED: Changed from find by id to direct access
           if (realChapter) {
             return {
               title: realChapter.title || `Chapter ${chapterNum}`,
